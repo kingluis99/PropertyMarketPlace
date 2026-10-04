@@ -1,0 +1,6 @@
+{
+  "name": "Keaton & Co. | London Residential Property",
+  "description": "A modern, premium UK residential property marketplace inspired by the visual style, editorial typography, and photography-led presentation of Keatons estate agency.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

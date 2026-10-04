@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: 'Fraunces', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --color-warm-bg: #FAF9F5;
+  --color-warm-surface: #FFFFFF;
+  --color-warm-muted: #F3F1EC;
+  --color-warm-border: #E6E3DC;
+  --color-charcoal: #1A1917;
+  --color-keaton-accent: #C25E3B;
+  --color-keaton-accent-hover: #AA4F30;
+  --color-keaton-dark: #121110;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-warm-bg);
+  color: var(--color-charcoal);
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-editorial {
+  font-family: var(--font-serif);
+}
+
+/* Custom scrollbars and transitions */
+::selection {
+  background-color: #F1DBD2;
+  color: #1A1917;
+}
