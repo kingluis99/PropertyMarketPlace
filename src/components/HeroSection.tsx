@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, MapPin, ChevronDown, SlidersHorizontal } from 'lucide-react';
 import { FilterState, ListingType, PropertyType } from '../types';
+import heroManchesterImg from '../assets/images/hero_manchester_terrace_1791150513168.jpg';
 
 interface HeroSectionProps {
   filter: FilterState;
@@ -66,7 +67,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       {/* Background Photography Asset: South Manchester Victorian Avenue */}
       <div className="absolute inset-0 z-0">
         <img
-          src="/src/assets/images/hero_manchester_terrace_1791150513168.jpg"
+          src={heroManchesterImg}
           alt="South Manchester Didsbury Victorian residential avenue"
           referrerPolicy="no-referrer"
           className="w-full h-full object-cover object-center brightness-[0.92]"
