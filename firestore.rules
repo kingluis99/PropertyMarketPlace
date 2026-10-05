@@ -1,0 +1,65 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128;
+    }
+
+    // User profile document
+    match /users/{userId} {
+      allow get, list: if isOwner(userId);
+      allow create, update: if isOwner(userId) && isValidId(userId);
+      allow delete: if isOwner(userId);
+
+      // User saved properties subcollection
+      match /savedProperties/{savedPropertyId} {
+        allow get, list: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidId(savedPropertyId);
+        allow delete: if isOwner(userId);
+      }
+
+      // User Lyria generated music tracks
+      match /soundtracks/{trackId} {
+        allow get, list: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidId(trackId);
+        allow delete: if isOwner(userId);
+      }
+
+      // User chat messages
+      match /chatMessages/{messageId} {
+        allow get, list: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidId(messageId);
+        allow delete: if isOwner(userId);
+      }
+    }
+
+    // Viewing bookings
+    match /viewings/{viewingId} {
+      allow read: if isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid);
+      allow create: if isValidId(viewingId) && 
+        request.resource.data.propertyId is string && 
+        request.resource.data.name is string &&
+        request.resource.data.email is string;
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // Property valuations
+    match /valuations/{valuationId} {
+      allow read: if isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid);
+      allow create: if isValidId(valuationId) && 
+        request.resource.data.postcode is string && 
+        request.resource.data.name is string &&
+        request.resource.data.email is string;
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+  }
+}

@@ -1,21 +1,25 @@
 import React, { useState } from 'react';
-import { Bookmark, Menu, X, User, PhoneCall, ChevronDown } from 'lucide-react';
+import { Bookmark, Menu, X, User, PhoneCall, ChevronDown, Sparkles, Music } from 'lucide-react';
 import { Property } from '../types';
 
 interface HeaderProps {
   activeTab: string;
-  setActiveTab: (tab: string) => void;
+  listingType?: 'sale' | 'rent';
+  setActiveTab: (tab: string, listingType?: 'sale' | 'rent') => void;
   savedProperties: Property[];
   onOpenSavedDrawer: () => void;
-  user: { name: string; email: string } | null;
+  user: { name: string; email: string; uid?: string; photoURL?: string } | null;
   onOpenAuth: () => void;
   onLogout: () => void;
   onOpenValuation: () => void;
   onSelectPropertyType?: (type: 'sale' | 'rent') => void;
+  onOpenAdvisor?: () => void;
+  onOpenMusicStudio?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   activeTab,
+  listingType = 'sale',
   setActiveTab,
   savedProperties,
   onOpenSavedDrawer,
@@ -23,15 +27,20 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenAuth,
   onLogout,
   onOpenValuation,
-  onSelectPropertyType
+  onSelectPropertyType,
+  onOpenAdvisor,
+  onOpenMusicStudio
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
-  const handleNavClick = (tab: string, listingType?: 'sale' | 'rent') => {
-    setActiveTab(tab);
-    if (listingType && onSelectPropertyType) {
-      onSelectPropertyType(listingType);
+  const isBuyActive = activeTab === 'search' && listingType === 'sale';
+  const isRentActive = (activeTab === 'search' && listingType === 'rent') || activeTab === 'rent';
+
+  const handleNavClick = (tab: string, listingTypeParam?: 'sale' | 'rent') => {
+    setActiveTab(tab, listingTypeParam);
+    if (listingTypeParam && onSelectPropertyType) {
+      onSelectPropertyType(listingTypeParam);
     }
     setMobileMenuOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -51,16 +60,16 @@ export const Header: React.FC<HeaderProps> = ({
           </span>
         </button>
 
-        {/* Zone 2: 4-6 clean text navigation links */}
-        <nav className="hidden md:flex items-center gap-8 text-[14px] font-medium text-[#57534E]">
+        {/* Zone 2: Clean text navigation links */}
+        <nav className="hidden md:flex items-center gap-7 lg:gap-8 text-[14px] font-medium text-[#57534E]">
           <button
             onClick={() => handleNavClick('search', 'sale')}
             className={`transition-colors hover:text-[#1A1917] cursor-pointer relative py-1 ${
-              activeTab === 'search' ? 'text-[#1A1917] font-semibold' : ''
+              isBuyActive ? 'text-[#1A1917] font-semibold' : ''
             }`}
           >
             Buy
-            {activeTab === 'search' && (
+            {isBuyActive && (
               <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#C25E3B]" />
             )}
           </button>
@@ -68,11 +77,11 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={() => handleNavClick('search', 'rent')}
             className={`transition-colors hover:text-[#1A1917] cursor-pointer relative py-1 ${
-              activeTab === 'rent' ? 'text-[#1A1917] font-semibold' : ''
+              isRentActive ? 'text-[#1A1917] font-semibold' : ''
             }`}
           >
             Rent
-            {activeTab === 'rent' && (
+            {isRentActive && (
               <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#C25E3B]" />
             )}
           </button>
@@ -122,15 +131,39 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#C25E3B]" />
             )}
           </button>
+
+          {/* AI Advisor Button */}
+          {onOpenAdvisor && (
+            <button
+              onClick={onOpenAdvisor}
+              className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 bg-[#F1DBD2]/70 hover:bg-[#F1DBD2] text-[#8C3A1E] rounded transition-colors cursor-pointer border border-[#E9C3B5]"
+              title="Chat with Anthony & Co. AI Property Advisor (Gemini)"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>AI Advisor</span>
+            </button>
+          )}
+
+          {/* Lyria Music Studio Button */}
+          {onOpenMusicStudio && (
+            <button
+              onClick={onOpenMusicStudio}
+              className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 text-[#57534E] hover:text-[#1A1917] hover:bg-[#EBE7DF] rounded transition-colors cursor-pointer"
+              title="Compose property soundtracks with Google Lyria"
+            >
+              <Music className="w-3.5 h-3.5 text-[#C25E3B]" />
+              <span>Soundtracks</span>
+            </button>
+          )}
         </nav>
 
-        {/* Zone 3: 1-2 primary actions (Saved Properties & Account) */}
-        <div className="flex items-center gap-4">
+        {/* Zone 3: Actions (Saved Properties, User Account, Valuation CTA) */}
+        <div className="flex items-center gap-3 lg:gap-4">
           
           {/* Saved Properties */}
           <button
             onClick={onOpenSavedDrawer}
-            className="relative flex items-center gap-2 text-[13px] font-medium text-[#1A1917] hover:text-[#C25E3B] transition-colors cursor-pointer px-2.5 py-1.5 rounded"
+            className="relative flex items-center gap-2 text-[13px] font-medium text-[#1A1917] hover:text-[#C25E3B] transition-colors cursor-pointer px-2 py-1.5 rounded"
             title="View saved properties"
           >
             <Bookmark className="w-4 h-4 text-[#1A1917] fill-transparent stroke-[1.8]" />
@@ -147,19 +180,29 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="relative">
               <button
                 onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                className="flex items-center gap-2 text-[13px] font-medium text-[#1A1917] px-3 py-1.5 border border-[#E6E3DC] bg-white rounded-md hover:border-[#1A1917] transition-colors cursor-pointer"
+                className="flex items-center gap-2 text-[13px] font-medium text-[#1A1917] px-2.5 py-1.5 border border-[#E6E3DC] bg-white rounded-md hover:border-[#1A1917] transition-colors cursor-pointer"
               >
-                <div className="w-5 h-5 rounded-full bg-[#C25E3B]/15 text-[#C25E3B] flex items-center justify-center text-xs font-semibold">
-                  {user.name.charAt(0).toUpperCase()}
-                </div>
+                {user.photoURL ? (
+                  <img
+                    src={user.photoURL}
+                    alt={user.name}
+                    className="w-5 h-5 rounded-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="w-5 h-5 rounded-full bg-[#C25E3B]/15 text-[#C25E3B] flex items-center justify-center text-xs font-semibold">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
                 <span className="hidden sm:inline max-w-[100px] truncate">{user.name}</span>
                 <ChevronDown className="w-3.5 h-3.5 text-[#75716B]" />
               </button>
 
               {userDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white border border-[#E6E3DC] shadow-lg rounded-md py-1.5 z-50 text-[13px]">
+                <div className="absolute right-0 mt-2 w-52 bg-white border border-[#E6E3DC] shadow-lg rounded-md py-1.5 z-50 text-[13px]">
                   <div className="px-3 py-2 border-b border-[#F3F1EC] text-xs text-[#75716B]">
-                    Signed in as <span className="font-semibold text-[#1A1917] block truncate">{user.email}</span>
+                    <span className="font-semibold text-[#1A1917] block truncate">{user.name}</span>
+                    <span className="text-[11px] text-[#A8A29E] block truncate">{user.email}</span>
                   </div>
                   <button
                     onClick={() => {
@@ -170,12 +213,36 @@ export const Header: React.FC<HeaderProps> = ({
                   >
                     Saved Properties ({savedProperties.length})
                   </button>
+                  {onOpenMusicStudio && (
+                    <button
+                      onClick={() => {
+                        setUserDropdownOpen(false);
+                        onOpenMusicStudio();
+                      }}
+                      className="w-full text-left px-3 py-2 text-[#1A1917] hover:bg-[#FAF9F5] transition-colors cursor-pointer flex items-center gap-1.5"
+                    >
+                      <Music className="w-3.5 h-3.5 text-[#C25E3B]" />
+                      <span>My Soundtracks</span>
+                    </button>
+                  )}
+                  {onOpenAdvisor && (
+                    <button
+                      onClick={() => {
+                        setUserDropdownOpen(false);
+                        onOpenAdvisor();
+                      }}
+                      className="w-full text-left px-3 py-2 text-[#1A1917] hover:bg-[#FAF9F5] transition-colors cursor-pointer flex items-center gap-1.5"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-[#C25E3B]" />
+                      <span>Ask AI Advisor</span>
+                    </button>
+                  )}
                   <button
                     onClick={() => {
                       setUserDropdownOpen(false);
                       onLogout();
                     }}
-                    className="w-full text-left px-3 py-2 text-[#C25E3B] hover:bg-[#FAF9F5] transition-colors cursor-pointer"
+                    className="w-full text-left px-3 py-2 text-[#C25E3B] hover:bg-[#FAF9F5] transition-colors cursor-pointer border-t border-[#F3F1EC]"
                   >
                     Sign Out
                   </button>
@@ -194,7 +261,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Book Valuation CTA */}
           <button
             onClick={onOpenValuation}
-            className="hidden lg:inline-flex items-center gap-1.5 bg-[#1A1917] text-white text-[13px] font-medium px-4 py-2 rounded hover:bg-[#C25E3B] transition-colors cursor-pointer whitespace-nowrap"
+            className="hidden sm:inline-flex items-center text-[13px] font-medium bg-[#1A1917] hover:bg-[#C25E3B] text-white px-4 py-2 transition-colors cursor-pointer"
           >
             Instant Valuation
           </button>
@@ -216,13 +283,17 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="flex flex-col gap-3 text-[16px] font-medium text-[#1A1917]">
             <button
               onClick={() => handleNavClick('search', 'sale')}
-              className="text-left py-2 hover:text-[#C25E3B] transition-colors"
+              className={`text-left py-2 hover:text-[#C25E3B] transition-colors ${
+                isBuyActive ? 'text-[#C25E3B] font-semibold' : ''
+              }`}
             >
               Buy
             </button>
             <button
               onClick={() => handleNavClick('search', 'rent')}
-              className="text-left py-2 hover:text-[#C25E3B] transition-colors"
+              className={`text-left py-2 hover:text-[#C25E3B] transition-colors ${
+                isRentActive ? 'text-[#C25E3B] font-semibold' : ''
+              }`}
             >
               Rent
             </button>
@@ -253,30 +324,71 @@ export const Header: React.FC<HeaderProps> = ({
             >
               Contact
             </button>
+
+            {/* AI Advisor Mobile */}
+            {onOpenAdvisor && (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenAdvisor();
+                }}
+                className="text-left py-2 text-[#8C3A1E] font-semibold flex items-center gap-2 hover:text-[#C25E3B]"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>AI Property Advisor (Gemini)</span>
+              </button>
+            )}
+
+            {/* Lyria Soundtracks Mobile */}
+            {onOpenMusicStudio && (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenMusicStudio();
+                }}
+                className="text-left py-2 text-[#57534E] flex items-center gap-2 hover:text-[#1A1917]"
+              >
+                <Music className="w-4 h-4 text-[#C25E3B]" />
+                <span>Soundtrack Studio (Lyria)</span>
+              </button>
+            )}
           </div>
 
           <div className="pt-4 border-t border-[#E6E3DC] flex flex-col gap-3">
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
-                onOpenSavedDrawer();
-              }}
-              className="flex items-center justify-between text-sm py-2 text-[#1A1917]"
-            >
-              <span>Saved Properties</span>
-              <span className="px-2 py-0.5 text-xs bg-[#C25E3B] text-white rounded-full">
-                {savedProperties.length}
-              </span>
-            </button>
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
                 onOpenValuation();
               }}
-              className="w-full text-center bg-[#C25E3B] text-white py-2.5 rounded font-medium text-sm"
+              className="w-full py-3 bg-[#1A1917] text-white text-center text-sm font-medium hover:bg-[#C25E3B] transition-colors cursor-pointer"
             >
-              Request Free Valuation
+              Instant Valuation
             </button>
+
+            {user ? (
+              <div className="flex items-center justify-between text-xs text-[#75716B] pt-2">
+                <span>Signed in as <strong className="text-[#1A1917]">{user.name}</strong></span>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    onLogout();
+                  }}
+                  className="text-[#C25E3B] font-semibold hover:underline cursor-pointer"
+                >
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenAuth();
+                }}
+                className="w-full py-2.5 border border-[#1A1917] text-[#1A1917] text-center text-sm font-medium hover:bg-stone-100 transition-colors cursor-pointer"
+              >
+                Sign In / Register
+              </button>
+            )}
           </div>
         </div>
       )}

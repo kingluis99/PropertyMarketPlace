@@ -1,0 +1,128 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Registered user profile",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Authentication UID" },
+        "email": { "type": "string", "format": "email", "description": "User email address" },
+        "displayName": { "type": "string", "description": "User full name" },
+        "photoURL": { "type": "string", "description": "User avatar URL" },
+        "createdAt": { "type": "string", "description": "ISO timestamp of registration" }
+      },
+      "required": ["uid", "email", "createdAt"]
+    },
+    "SavedProperty": {
+      "title": "SavedProperty",
+      "description": "Property shortlisted by user",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Document ID" },
+        "userId": { "type": "string", "description": "Owner UID" },
+        "propertyId": { "type": "string", "description": "Referenced property ID" },
+        "propertyTitle": { "type": "string", "description": "Property title" },
+        "price": { "type": "number", "description": "Listing price" },
+        "image": { "type": "string", "description": "Property thumbnail image" },
+        "area": { "type": "string", "description": "Neighbourhood area" },
+        "savedAt": { "type": "string", "description": "ISO timestamp" }
+      },
+      "required": ["id", "userId", "propertyId", "savedAt"]
+    },
+    "ViewingBooking": {
+      "title": "ViewingBooking",
+      "description": "Reserved property viewing slot",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Booking reference code" },
+        "userId": { "type": "string", "description": "User UID if authenticated" },
+        "propertyId": { "type": "string", "description": "Property ID" },
+        "propertyTitle": { "type": "string", "description": "Property title" },
+        "date": { "type": "string", "description": "Viewing date" },
+        "timeSlot": { "type": "string", "description": "Viewing time slot" },
+        "name": { "type": "string", "description": "Client name" },
+        "email": { "type": "string", "format": "email", "description": "Client email" },
+        "phone": { "type": "string", "description": "Client phone number" },
+        "message": { "type": "string", "description": "Special requirements" },
+        "status": { "type": "string", "enum": ["confirmed", "pending", "cancelled"], "description": "Booking status" },
+        "createdAt": { "type": "string", "description": "ISO timestamp" }
+      },
+      "required": ["id", "propertyId", "propertyTitle", "date", "timeSlot", "name", "email", "createdAt"]
+    },
+    "ValuationRecord": {
+      "title": "ValuationRecord",
+      "description": "Property valuation enquiry",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Valuation reference ID" },
+        "userId": { "type": "string", "description": "User UID" },
+        "postcode": { "type": "string", "description": "Manchester postcode" },
+        "bedrooms": { "type": "number", "description": "Number of bedrooms" },
+        "propertyType": { "type": "string", "description": "Property architectural style" },
+        "condition": { "type": "string", "description": "Property interior condition" },
+        "estimatedValue": { "type": "number", "description": "Calculated algorithmic estimate in GBP" },
+        "name": { "type": "string", "description": "Homeowner name" },
+        "email": { "type": "string", "format": "email", "description": "Homeowner email" },
+        "phone": { "type": "string", "description": "Homeowner phone" },
+        "createdAt": { "type": "string", "description": "ISO timestamp" }
+      },
+      "required": ["id", "postcode", "bedrooms", "estimatedValue", "name", "email", "createdAt"]
+    },
+    "MusicTrack": {
+      "title": "MusicTrack",
+      "description": "AI-generated soundtrack produced via Lyria",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Track ID" },
+        "userId": { "type": "string", "description": "Creator UID" },
+        "title": { "type": "string", "description": "Track title" },
+        "prompt": { "type": "string", "description": "Generation prompt" },
+        "model": { "type": "string", "description": "Lyria model used" },
+        "audioData": { "type": "string", "description": "Base64 or URL audio stream" },
+        "lyrics": { "type": "string", "description": "Generated lyrics or metadata" },
+        "createdAt": { "type": "string", "description": "ISO timestamp" }
+      },
+      "required": ["id", "userId", "prompt", "model", "audioData", "createdAt"]
+    },
+    "ChatMessage": {
+      "title": "ChatMessage",
+      "description": "Chat transcript turn",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Message ID" },
+        "userId": { "type": "string", "description": "User UID" },
+        "role": { "type": "string", "enum": ["user", "model", "system"], "description": "Message author" },
+        "text": { "type": "string", "description": "Message content" },
+        "model": { "type": "string", "description": "Model alias used" },
+        "createdAt": { "type": "string", "description": "ISO timestamp" }
+      },
+      "required": ["id", "userId", "role", "text", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile document indexed by Firebase Auth UID"
+    },
+    "/users/{userId}/savedProperties/{savedPropertyId}": {
+      "schema": "SavedProperty",
+      "description": "Subcollection of properties saved by the user"
+    },
+    "/users/{userId}/soundtracks/{trackId}": {
+      "schema": "MusicTrack",
+      "description": "Subcollection of Lyria generated property soundtracks for the user"
+    },
+    "/users/{userId}/chatMessages/{messageId}": {
+      "schema": "ChatMessage",
+      "description": "Subcollection of advisor chat turns for the user"
+    },
+    "/viewings/{viewingId}": {
+      "schema": "ViewingBooking",
+      "description": "Property viewing bookings collection"
+    },
+    "/valuations/{valuationId}": {
+      "schema": "ValuationRecord",
+      "description": "Property valuation enquiries collection"
+    }
+  }
+}

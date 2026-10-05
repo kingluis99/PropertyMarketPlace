@@ -15,13 +15,26 @@ import { ValuationModal } from './components/ValuationModal';
 import { ArrangeViewingModal } from './components/ArrangeViewingModal';
 import { SavedPropertiesDrawer } from './components/SavedPropertiesDrawer';
 import { AuthModal } from './components/AuthModal';
+import { GeminiAdvisorModal } from './components/GeminiAdvisorModal';
+import { LyriaMusicModal } from './components/LyriaMusicModal';
 import { AboutSection } from './components/AboutSection';
 import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
 
 import { PROPERTIES } from './data/properties';
 import { FilterState, Property, ViewingRequest } from './types';
-import { Check, Bookmark, Calendar } from 'lucide-react';
+import { Check, Sparkles, Music, MessageSquare } from 'lucide-react';
+import { isSoundtrackEnabled } from './config';
+import { 
+  onAuthUserChanged, 
+  signOutUser, 
+  savePropertyToFirestore, 
+  removePropertyFromFirestore, 
+  subscribeSavedProperties, 
+  saveViewingBookingToFirestore,
+  subscribeSoundtracks,
+  StoredSoundtrack
+} from './lib/firebase';
 
 const SAVED_STORAGE_KEY = 'keaton_saved_properties';
 const USER_STORAGE_KEY = 'keaton_user_account';
@@ -48,17 +61,36 @@ export default function App() {
   const [isValuationModalOpen, setIsValuationModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
+  // Gemini & Lyria Modal States
+  const [isAdvisorOpen, setIsAdvisorOpen] = useState(false);
+  const [advisorProperty, setAdvisorProperty] = useState<Property | null>(null);
+  const [isMusicStudioOpen, setIsMusicStudioOpen] = useState(false);
+  const [savedSoundtracks, setSavedSoundtracks] = useState<StoredSoundtrack[]>([]);
+  const [isSoundtrackOn, setIsSoundtrackOn] = useState<boolean>(() => isSoundtrackEnabled());
+
+  // Check backend runtime config for SOUNDTRACK_ON
+  useEffect(() => {
+    fetch('/api/config')
+      .then(res => res.json())
+      .then(data => {
+        if (typeof data.soundtrackEnabled === 'boolean') {
+          setIsSoundtrackOn(data.soundtrackEnabled);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   // User & Persistence
   const [savedPropertyIds, setSavedPropertyIds] = useState<string[]>(() => {
     try {
       const stored = localStorage.getItem(SAVED_STORAGE_KEY);
-      return stored ? JSON.parse(stored) : ['prop-1', 'prop-3']; // initial high-end favorites
+      return stored ? JSON.parse(stored) : ['prop-1', 'prop-3'];
     } catch {
       return ['prop-1', 'prop-3'];
     }
   });
 
-  const [user, setUser] = useState<{ name: string; email: string } | null>(() => {
+  const [user, setUser] = useState<{ name: string; email: string; uid?: string; photoURL?: string } | null>(() => {
     try {
       const stored = localStorage.getItem(USER_STORAGE_KEY);
       return stored ? JSON.parse(stored) : null;
@@ -86,6 +118,46 @@ export default function App() {
     }, 3200);
   };
 
+  // Firebase Auth State Listener
+  useEffect(() => {
+    const unsubscribe = onAuthUserChanged((fbUser) => {
+      if (fbUser) {
+        setUser({
+          name: fbUser.displayName || fbUser.email?.split('@')[0] || 'Client',
+          email: fbUser.email || '',
+          uid: fbUser.uid,
+          photoURL: fbUser.photoURL || undefined
+        });
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Real-time Firestore sync for Saved Properties
+  useEffect(() => {
+    if (user?.uid) {
+      const unsubscribe = subscribeSavedProperties(user.uid, (firestoreIds) => {
+        if (firestoreIds && firestoreIds.length > 0) {
+          setSavedPropertyIds(firestoreIds);
+        }
+      });
+      return () => unsubscribe();
+    }
+  }, [user?.uid]);
+
+  // Real-time Firestore sync for Lyria Soundtracks (when feature is enabled)
+  useEffect(() => {
+    if (isSoundtrackOn && user?.uid) {
+      const unsubscribe = subscribeSoundtracks(user.uid, (tracks) => {
+        setSavedSoundtracks(tracks);
+      });
+      return () => unsubscribe();
+    } else {
+      setSavedSoundtracks([]);
+    }
+  }, [user?.uid, isSoundtrackOn]);
+
+  // Local storage synchronization
   useEffect(() => {
     try {
       localStorage.setItem(SAVED_STORAGE_KEY, JSON.stringify(savedPropertyIds));
@@ -117,15 +189,33 @@ export default function App() {
   // Derived Saved Properties
   const savedProperties = PROPERTIES.filter(p => savedPropertyIds.includes(p.id));
 
-  // Toggle Save handler
-  const handleToggleSave = (prop: Property) => {
-    if (savedPropertyIds.includes(prop.id)) {
+  // Toggle Save handler with Firestore sync
+  const handleToggleSave = async (prop: Property) => {
+    const isCurrentlySaved = savedPropertyIds.includes(prop.id);
+    if (isCurrentlySaved) {
       setSavedPropertyIds(prev => prev.filter(id => id !== prop.id));
       showToast(`Removed "${prop.title.slice(0, 30)}..." from saved`);
+      if (user?.uid) {
+        await removePropertyFromFirestore(user.uid, prop.id).catch(console.warn);
+      }
     } else {
       setSavedPropertyIds(prev => [...prev, prop.id]);
       showToast(`Saved "${prop.title.slice(0, 30)}..." to your collection`);
+      if (user?.uid) {
+        await savePropertyToFirestore(user.uid, prop).catch(console.warn);
+      }
     }
+  };
+
+  // Sign out handler
+  const handleLogout = async () => {
+    try {
+      await signOutUser();
+    } catch (e) {
+      console.warn('Sign out:', e);
+    }
+    setUser(null);
+    showToast('Signed out successfully');
   };
 
   // Execute search from hero
@@ -146,7 +236,6 @@ export default function App() {
 
   // Neighbourhood selection
   const handleSelectNeighbourhood = (areaName: string) => {
-    // Extract base area keyword, e.g. "Victoria Park" or "Shoreditch"
     const keyword = areaName.split('&')[0].trim();
     setFilter(prev => ({
       ...prev,
@@ -170,14 +259,19 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Confirm viewing booking
-  const handleConfirmViewing = (req: ViewingRequest) => {
+  // Confirm viewing booking with Firestore persistence
+  const handleConfirmViewing = async (req: ViewingRequest) => {
     setConfirmedViewings(prev => [req, ...prev]);
     showToast(`Viewing reserved for ${req.date} (${req.id})`);
+    try {
+      await saveViewingBookingToFirestore(req, user?.uid);
+    } catch (e) {
+      console.warn('Could not save booking to firestore:', e);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] text-[#1A1917] flex flex-col font-sans selection:bg-[#F1DBD2] selection:text-[#1A1917]">
+    <div className="min-h-screen bg-[#FAF9F5] text-[#1A1917] flex flex-col font-sans selection:bg-[#F1DBD2] selection:text-[#1A1917] relative">
       
       {/* Toast alert banner */}
       {toastMessage && (
@@ -187,19 +281,48 @@ export default function App() {
         </div>
       )}
 
+      {/* Floating Action Bar for AI Advisor and Soundtracks */}
+      <div className="fixed bottom-6 left-6 z-40 flex items-center gap-2">
+        <button
+          onClick={() => {
+            setAdvisorProperty(null);
+            setIsAdvisorOpen(true);
+          }}
+          className="flex items-center gap-2 px-3.5 py-2 bg-[#1A1917] hover:bg-[#C25E3B] text-white text-xs font-semibold rounded-full shadow-xl transition-all cursor-pointer border border-stone-700 hover:scale-105"
+          title="Chat with Anthony & Co. AI Property Advisor (Gemini)"
+        >
+          <Sparkles className="w-3.5 h-3.5 text-[#C25E3B]" />
+          <span>Ask AI Advisor</span>
+        </button>
+
+        {isSoundtrackOn && (
+          <button
+            onClick={() => setIsMusicStudioOpen(true)}
+            className="flex items-center gap-2 px-3 py-2 bg-white/95 hover:bg-white text-[#1A1917] text-xs font-medium rounded-full shadow-lg transition-all cursor-pointer border border-[#E6E3DC] hover:border-[#1A1917] backdrop-blur-sm"
+            title="Compose ambient property soundtracks with Google Lyria"
+          >
+            <Music className="w-3.5 h-3.5 text-[#C25E3B]" />
+            <span className="hidden sm:inline">Soundtrack Studio</span>
+          </button>
+        )}
+      </div>
+
       {/* Global Header Navigation */}
       <Header
         activeTab={activeTab}
-        setActiveTab={(tab) => handleNavigate(tab)}
+        listingType={filter.listingType}
+        setActiveTab={(tab, listingType) => handleNavigate(tab, listingType)}
         savedProperties={savedProperties}
         onOpenSavedDrawer={() => setIsSavedDrawerOpen(true)}
         user={user}
         onOpenAuth={() => setIsAuthModalOpen(true)}
-        onLogout={() => {
-          setUser(null);
-          showToast('Signed out successfully');
-        }}
+        onLogout={handleLogout}
         onOpenValuation={() => setIsValuationModalOpen(true)}
+        onOpenAdvisor={() => {
+          setAdvisorProperty(null);
+          setIsAdvisorOpen(true);
+        }}
+        onOpenMusicStudio={isSoundtrackOn ? () => setIsMusicStudioOpen(true) : undefined}
         onSelectPropertyType={(type) => {
           setFilter(prev => ({
             ...prev,
@@ -222,21 +345,21 @@ export default function App() {
               onSelectQuickLocation={handleQuickLocation}
             />
 
-            {/* Featured Properties Showcase */}
+            {/* Featured Curated Portfolio */}
             <FeaturedProperties
               properties={PROPERTIES}
-              onSelectProperty={(prop) => setSelectedProperty(prop)}
-              onToggleSave={handleToggleSave}
               savedPropertyIds={savedPropertyIds}
-              onViewAll={(type) => handleNavigate('search', type)}
+              onToggleSave={handleToggleSave}
+              onSelectProperty={(prop: Property) => setSelectedProperty(prop)}
+              onViewAll={(type) => handleNavigate('search', type || 'sale')}
             />
 
-            {/* Lifestyle & Neighbourhoods Section */}
+            {/* Neighbourhood Enclaves */}
             <NeighbourhoodsSection
               onSelectNeighbourhood={handleSelectNeighbourhood}
             />
 
-            {/* Seller Section */}
+            {/* Seller & Landlord Section */}
             <SellerSection
               onOpenValuationModal={() => setIsValuationModalOpen(true)}
               onContactAgent={() => handleNavigate('contact')}
@@ -249,18 +372,16 @@ export default function App() {
             properties={PROPERTIES}
             filter={filter}
             setFilter={setFilter}
-            onSelectProperty={(prop) => setSelectedProperty(prop)}
             savedPropertyIds={savedPropertyIds}
             onToggleSave={handleToggleSave}
+            onSelectProperty={(prop: Property) => setSelectedProperty(prop)}
           />
         )}
 
         {activeTab === 'neighbourhoods' && (
-          <div className="py-12">
-            <NeighbourhoodsSection
-              onSelectNeighbourhood={handleSelectNeighbourhood}
-            />
-          </div>
+          <NeighbourhoodsSection
+            onSelectNeighbourhood={handleSelectNeighbourhood}
+          />
         )}
 
         {activeTab === 'about' && (
@@ -275,7 +396,7 @@ export default function App() {
         )}
       </main>
 
-      {/* Footer */}
+      {/* Global Editorial Footer */}
       <Footer
         onNavigate={handleNavigate}
         onOpenValuation={() => setIsValuationModalOpen(true)}
@@ -293,6 +414,13 @@ export default function App() {
           onOpenViewingModal={(prop) => {
             setViewingProperty(prop);
           }}
+          onOpenAdvisorWithProperty={(prop) => {
+            setAdvisorProperty(prop);
+            setIsAdvisorOpen(true);
+          }}
+          onOpenMusicForProperty={isSoundtrackOn ? (prop) => {
+            setIsMusicStudioOpen(true);
+          } : undefined}
         />
       )}
 
@@ -316,24 +444,51 @@ export default function App() {
         isOpen={isSavedDrawerOpen}
         onClose={() => setIsSavedDrawerOpen(false)}
         savedProperties={savedProperties}
-        onRemoveSaved={(id) => {
+        onRemoveSaved={async (id) => {
           setSavedPropertyIds(prev => prev.filter(x => x !== id));
           showToast('Removed from saved properties');
+          if (user?.uid) {
+            await removePropertyFromFirestore(user.uid, id).catch(console.warn);
+          }
         }}
         onSelectProperty={(prop) => setSelectedProperty(prop)}
         onOpenViewing={(prop) => setViewingProperty(prop)}
         onBrowseMore={() => handleNavigate('search', 'sale')}
       />
 
-      {/* 5. User Sign In / Register Modal */}
+      {/* 5. User Sign In / Register Modal with Google Firebase Auth */}
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         onLogin={(loggedInUser) => {
           setUser(loggedInUser);
-          showToast(`Welcome back, ${loggedInUser.name}`);
+          showToast(`Welcome, ${loggedInUser.name}`);
         }}
       />
+
+      {/* 6. Gemini Multi-Turn AI Advisor Modal */}
+      <GeminiAdvisorModal
+        isOpen={isAdvisorOpen}
+        onClose={() => {
+          setIsAdvisorOpen(false);
+          setAdvisorProperty(null);
+        }}
+        activeProperty={advisorProperty}
+        onNavigateToProperty={(prop) => {
+          setIsAdvisorOpen(false);
+          setSelectedProperty(prop);
+        }}
+      />
+
+      {/* 7. Lyria Music Studio Modal (rendered only when feature enabled) */}
+      {isSoundtrackOn && (
+        <LyriaMusicModal
+          isOpen={isMusicStudioOpen}
+          onClose={() => setIsMusicStudioOpen(false)}
+          userId={user?.uid}
+          savedSoundtracks={savedSoundtracks}
+        />
+      )}
 
     </div>
   );

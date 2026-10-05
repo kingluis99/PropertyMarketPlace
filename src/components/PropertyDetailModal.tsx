@@ -14,7 +14,9 @@ import {
   ChevronRight,
   Layers,
   MapPin,
-  Check
+  Check,
+  Sparkles,
+  Music
 } from 'lucide-react';
 import { Property } from '../types';
 
@@ -24,6 +26,8 @@ interface PropertyDetailModalProps {
   isSaved: boolean;
   onToggleSave: (property: Property) => void;
   onOpenViewingModal: (property: Property) => void;
+  onOpenAdvisorWithProperty?: (property: Property) => void;
+  onOpenMusicForProperty?: (property: Property) => void;
 }
 
 export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
@@ -31,7 +35,9 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
   onClose,
   isSaved,
   onToggleSave,
-  onOpenViewingModal
+  onOpenViewingModal,
+  onOpenAdvisorWithProperty,
+  onOpenMusicForProperty
 }) => {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<'overview' | 'floorplan' | 'transport'>('overview');
@@ -287,6 +293,29 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                     <Calendar className="w-4 h-4" />
                     <span>Book Appointment</span>
                   </button>
+
+                  {/* AI Advisor & Music Studio integrations */}
+                  <div className="pt-2 border-t border-[#F3F1EC] space-y-2">
+                    {onOpenAdvisorWithProperty && (
+                      <button
+                        onClick={() => onOpenAdvisorWithProperty(property)}
+                        className="w-full py-2.5 bg-[#FAF9F5] hover:bg-[#F1DBD2] text-[#8C3A1E] border border-[#E9C3B5] text-xs font-medium transition-colors cursor-pointer flex items-center justify-center gap-2"
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>Consult AI Advisor About This Home</span>
+                      </button>
+                    )}
+
+                    {onOpenMusicForProperty && (
+                      <button
+                        onClick={() => onOpenMusicForProperty(property)}
+                        className="w-full py-2 bg-[#FAF9F5] hover:bg-stone-100 text-[#57534E] hover:text-[#1A1917] border border-[#E6E3DC] text-xs font-medium transition-colors cursor-pointer flex items-center justify-center gap-2"
+                      >
+                        <Music className="w-3.5 h-3.5 text-[#C25E3B]" />
+                        <span>Compose Property Soundtrack (Lyria)</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Agent Card */}
