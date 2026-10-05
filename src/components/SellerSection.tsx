@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowRight, Calculator, CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react';
+import sellerLivingImg from '../assets/images/seller_valuation_living_1791149595710.jpg';
 
 interface SellerSectionProps {
   onOpenValuationModal: () => void;
@@ -18,7 +19,7 @@ export const SellerSection: React.FC<SellerSectionProps> = ({
         <div className="lg:col-span-7 relative">
           <div className="relative aspect-[16/10] overflow-hidden bg-[#F3F1EC] border border-[#E6E3DC]">
             <img
-              src="/src/assets/images/seller_valuation_living_1791149595710.jpg"
+              src={sellerLivingImg}
               alt="Architect designed British living room"
               referrerPolicy="no-referrer"
               className="w-full h-full object-cover object-center"

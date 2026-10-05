@@ -1,5 +1,6 @@
 import React from 'react';
 import { Camera, Compass, Award, Shield, ArrowRight } from 'lucide-react';
+import ancoatsStreetImg from '../assets/images/neighbourhood_ancoats_mills_1791150524809.jpg';
 
 interface AboutSectionProps {
   onExploreProperties: () => void;
@@ -31,7 +32,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
         <div className="lg:col-span-7">
           <div className="relative aspect-[16/10] overflow-hidden bg-[#F3F1EC] border border-[#E6E3DC]">
             <img
-              src="/src/assets/images/neighbourhood_ancoats_mills_1791150524809.jpg"
+              src={ancoatsStreetImg}
               alt="Ancoats Manchester street life"
               referrerPolicy="no-referrer"
               className="w-full h-full object-cover"

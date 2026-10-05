@@ -1,4 +1,10 @@
 import { Property } from '../types';
+import heroManchesterImg from '../assets/images/hero_manchester_terrace_1791150513168.jpg';
+import periodGeorgianImg from '../assets/images/property_georgian_islington_1791149574741.jpg';
+import gardenFlatImg from '../assets/images/property_garden_flat_1791149585982.jpg';
+import loftIndustrialImg from '../assets/images/property_loft_shoreditch_1791149564311.jpg';
+import ancoatsMillsImg from '../assets/images/neighbourhood_ancoats_mills_1791150524809.jpg';
+import sellerLivingImg from '../assets/images/seller_valuation_living_1791149595710.jpg';
 
 export const PROPERTIES: Property[] = [
   {
@@ -18,9 +24,9 @@ export const PROPERTIES: Property[] = [
     councilTaxBand: 'Band G',
     featured: true,
     images: [
-      '/src/assets/images/hero_manchester_terrace_1791150513168.jpg',
-      '/src/assets/images/property_georgian_islington_1791149574741.jpg',
-      '/src/assets/images/property_garden_flat_1791149585982.jpg'
+      heroManchesterImg,
+      periodGeorgianImg,
+      gardenFlatImg
     ],
     description: 'A distinguished five-bedroom Victorian merchant residence commanding a prime position along leafy Lapwing Lane, featuring soaring 3.4m corniced ceilings, dual reception rooms, and a secluded landscaped south-facing garden.',
     longDescription: [
@@ -78,9 +84,9 @@ export const PROPERTIES: Property[] = [
     councilTaxBand: 'Band D',
     featured: true,
     images: [
-      '/src/assets/images/property_loft_shoreditch_1791149564311.jpg',
-      '/src/assets/images/neighbourhood_ancoats_mills_1791150524809.jpg',
-      '/src/assets/images/seller_valuation_living_1791149595710.jpg'
+      loftIndustrialImg,
+      ancoatsMillsImg,
+      sellerLivingImg
     ],
     description: 'An authentic lateral loft set within the Grade II* listed Royal Mill on Cutting Room Square, celebrating original timber-beamed ceilings, exposed Victorian brickwork, and full-width multi-pane factory windows.',
     longDescription: [
@@ -134,9 +140,9 @@ export const PROPERTIES: Property[] = [
     councilTaxBand: 'Band E',
     featured: true,
     images: [
-      '/src/assets/images/property_garden_flat_1791149585982.jpg',
-      '/src/assets/images/hero_manchester_terrace_1791150513168.jpg',
-      '/src/assets/images/property_georgian_islington_1791149574741.jpg'
+      gardenFlatImg,
+      heroManchesterImg,
+      periodGeorgianImg
     ],
     description: 'An exceptional four-bedroom Victorian residence directly off iconic Beech Road, boasting a bespoke kitchen extension with terrazzo finishes, period stained glass, and a tranquil walled courtyard.',
     longDescription: [
@@ -191,9 +197,9 @@ export const PROPERTIES: Property[] = [
     councilTaxBand: 'Band C',
     featured: true,
     images: [
-      '/src/assets/images/seller_valuation_living_1791149595710.jpg',
-      '/src/assets/images/property_garden_flat_1791149585982.jpg',
-      '/src/assets/images/hero_manchester_terrace_1791150513168.jpg'
+      sellerLivingImg,
+      gardenFlatImg,
+      heroManchesterImg
     ],
     description: 'A stylish garden apartment occupying the ground floor of an imposing Victorian villa on Burton Road, complete with polished concrete underfloor heating, terrazzo surfaces, and a private bamboo garden.',
     longDescription: [
@@ -245,9 +251,9 @@ export const PROPERTIES: Property[] = [
     councilTaxBand: 'Band E',
     featured: false,
     images: [
-      '/src/assets/images/property_loft_shoreditch_1791149564311.jpg',
-      '/src/assets/images/neighbourhood_ancoats_mills_1791150524809.jpg',
-      '/src/assets/images/property_georgian_islington_1791149574741.jpg'
+      loftIndustrialImg,
+      ancoatsMillsImg,
+      periodGeorgianImg
     ],
     description: 'An exceptional waterside duplex within an authentic brick merchant warehouse overlooking Castlefield canal basin, offering a private water-facing balcony, vaulted brick barrel ceilings, and secure allocated parking.',
     longDescription: [
@@ -300,9 +306,9 @@ export const PROPERTIES: Property[] = [
     councilTaxBand: 'Band D',
     featured: false,
     images: [
-      '/src/assets/images/neighbourhood_ancoats_mills_1791150524809.jpg',
-      '/src/assets/images/property_loft_shoreditch_1791149564311.jpg',
-      '/src/assets/images/seller_valuation_living_1791149595710.jpg'
+      ancoatsMillsImg,
+      loftIndustrialImg,
+      sellerLivingImg
     ],
     description: 'A contemporary canal-front home overlooking the yachts and paddleboarders of New Islington Marina, offering floor-to-ceiling windows, timber balcony, and open-plan designer kitchen.',
     longDescription: [
@@ -354,9 +360,9 @@ export const PROPERTIES: Property[] = [
     councilTaxBand: 'Band E',
     featured: false,
     images: [
-      '/src/assets/images/property_georgian_islington_1791149574741.jpg',
-      '/src/assets/images/seller_valuation_living_1791149595710.jpg',
-      '/src/assets/images/hero_manchester_terrace_1791150513168.jpg'
+      periodGeorgianImg,
+      sellerLivingImg,
+      heroManchesterImg
     ],
     description: 'An expansive three-bedroom Edwardian maisonette directly overlooking the historic cobblestones of Shaw\'s Road, seconds from award-winning Altrincham Market and Stamford Park.',
     longDescription: [
@@ -408,9 +414,9 @@ export const PROPERTIES: Property[] = [
     councilTaxBand: 'Band H',
     featured: true,
     images: [
-      '/src/assets/images/hero_manchester_terrace_1791150513168.jpg',
-      '/src/assets/images/seller_valuation_living_1791149595710.jpg',
-      '/src/assets/images/property_garden_flat_1791149585982.jpg'
+      heroManchesterImg,
+      sellerLivingImg,
+      gardenFlatImg
     ],
     description: 'A magnificent detached Victorian manor house positioned along prestigious Park Road, enjoying a quarter-acre landscaped plot, four reception rooms, five bedrooms, and an architect-built garden office pavilion.',
     longDescription: [
