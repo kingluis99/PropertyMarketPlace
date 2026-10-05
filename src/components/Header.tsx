@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bookmark, Menu, X, User, PhoneCall, ChevronDown, Sparkles, Music } from 'lucide-react';
+import { Bookmark, Menu, X, User, PhoneCall, ChevronDown, Sparkles } from 'lucide-react';
 import { Property } from '../types';
 
 interface HeaderProps {
@@ -14,7 +14,6 @@ interface HeaderProps {
   onOpenValuation: () => void;
   onSelectPropertyType?: (type: 'sale' | 'rent') => void;
   onOpenAdvisor?: () => void;
-  onOpenMusicStudio?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -28,8 +27,7 @@ export const Header: React.FC<HeaderProps> = ({
   onLogout,
   onOpenValuation,
   onSelectPropertyType,
-  onOpenAdvisor,
-  onOpenMusicStudio
+  onOpenAdvisor
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -143,18 +141,6 @@ export const Header: React.FC<HeaderProps> = ({
               <span>AI Advisor</span>
             </button>
           )}
-
-          {/* Lyria Music Studio Button */}
-          {onOpenMusicStudio && (
-            <button
-              onClick={onOpenMusicStudio}
-              className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 text-[#57534E] hover:text-[#1A1917] hover:bg-[#EBE7DF] rounded transition-colors cursor-pointer"
-              title="Compose property soundtracks with Google Lyria"
-            >
-              <Music className="w-3.5 h-3.5 text-[#C25E3B]" />
-              <span>Soundtracks</span>
-            </button>
-          )}
         </nav>
 
         {/* Zone 3: Actions (Saved Properties, User Account, Valuation CTA) */}
@@ -213,18 +199,6 @@ export const Header: React.FC<HeaderProps> = ({
                   >
                     Saved Properties ({savedProperties.length})
                   </button>
-                  {onOpenMusicStudio && (
-                    <button
-                      onClick={() => {
-                        setUserDropdownOpen(false);
-                        onOpenMusicStudio();
-                      }}
-                      className="w-full text-left px-3 py-2 text-[#1A1917] hover:bg-[#FAF9F5] transition-colors cursor-pointer flex items-center gap-1.5"
-                    >
-                      <Music className="w-3.5 h-3.5 text-[#C25E3B]" />
-                      <span>My Soundtracks</span>
-                    </button>
-                  )}
                   {onOpenAdvisor && (
                     <button
                       onClick={() => {
@@ -336,20 +310,6 @@ export const Header: React.FC<HeaderProps> = ({
               >
                 <Sparkles className="w-4 h-4" />
                 <span>AI Property Advisor (Gemini)</span>
-              </button>
-            )}
-
-            {/* Lyria Soundtracks Mobile */}
-            {onOpenMusicStudio && (
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  onOpenMusicStudio();
-                }}
-                className="text-left py-2 text-[#57534E] flex items-center gap-2 hover:text-[#1A1917]"
-              >
-                <Music className="w-4 h-4 text-[#C25E3B]" />
-                <span>Soundtrack Studio (Lyria)</span>
               </button>
             )}
           </div>

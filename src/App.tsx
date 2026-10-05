@@ -16,24 +16,20 @@ import { ArrangeViewingModal } from './components/ArrangeViewingModal';
 import { SavedPropertiesDrawer } from './components/SavedPropertiesDrawer';
 import { AuthModal } from './components/AuthModal';
 import { GeminiAdvisorModal } from './components/GeminiAdvisorModal';
-import { LyriaMusicModal } from './components/LyriaMusicModal';
 import { AboutSection } from './components/AboutSection';
 import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
 
 import { PROPERTIES } from './data/properties';
 import { FilterState, Property, ViewingRequest } from './types';
-import { Check, Sparkles, Music, MessageSquare } from 'lucide-react';
-import { isSoundtrackEnabled } from './config';
+import { Check, Sparkles } from 'lucide-react';
 import { 
   onAuthUserChanged, 
   signOutUser, 
   savePropertyToFirestore, 
   removePropertyFromFirestore, 
   subscribeSavedProperties, 
-  saveViewingBookingToFirestore,
-  subscribeSoundtracks,
-  StoredSoundtrack
+  saveViewingBookingToFirestore
 } from './lib/firebase';
 
 const SAVED_STORAGE_KEY = 'keaton_saved_properties';
@@ -61,24 +57,9 @@ export default function App() {
   const [isValuationModalOpen, setIsValuationModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
-  // Gemini & Lyria Modal States
+  // Gemini Modal States
   const [isAdvisorOpen, setIsAdvisorOpen] = useState(false);
   const [advisorProperty, setAdvisorProperty] = useState<Property | null>(null);
-  const [isMusicStudioOpen, setIsMusicStudioOpen] = useState(false);
-  const [savedSoundtracks, setSavedSoundtracks] = useState<StoredSoundtrack[]>([]);
-  const [isSoundtrackOn, setIsSoundtrackOn] = useState<boolean>(() => isSoundtrackEnabled());
-
-  // Check backend runtime config for SOUNDTRACK_ON
-  useEffect(() => {
-    fetch('/api/config')
-      .then(res => res.json())
-      .then(data => {
-        if (typeof data.soundtrackEnabled === 'boolean') {
-          setIsSoundtrackOn(data.soundtrackEnabled);
-        }
-      })
-      .catch(() => {});
-  }, []);
 
   // User & Persistence
   const [savedPropertyIds, setSavedPropertyIds] = useState<string[]>(() => {
@@ -144,18 +125,6 @@ export default function App() {
       return () => unsubscribe();
     }
   }, [user?.uid]);
-
-  // Real-time Firestore sync for Lyria Soundtracks (when feature is enabled)
-  useEffect(() => {
-    if (isSoundtrackOn && user?.uid) {
-      const unsubscribe = subscribeSoundtracks(user.uid, (tracks) => {
-        setSavedSoundtracks(tracks);
-      });
-      return () => unsubscribe();
-    } else {
-      setSavedSoundtracks([]);
-    }
-  }, [user?.uid, isSoundtrackOn]);
 
   // Local storage synchronization
   useEffect(() => {
@@ -281,7 +250,7 @@ export default function App() {
         </div>
       )}
 
-      {/* Floating Action Bar for AI Advisor and Soundtracks */}
+      {/* Floating Action Bar for AI Advisor */}
       <div className="fixed bottom-6 left-6 z-40 flex items-center gap-2">
         <button
           onClick={() => {
@@ -294,17 +263,6 @@ export default function App() {
           <Sparkles className="w-3.5 h-3.5 text-[#C25E3B]" />
           <span>Ask AI Advisor</span>
         </button>
-
-        {isSoundtrackOn && (
-          <button
-            onClick={() => setIsMusicStudioOpen(true)}
-            className="flex items-center gap-2 px-3 py-2 bg-white/95 hover:bg-white text-[#1A1917] text-xs font-medium rounded-full shadow-lg transition-all cursor-pointer border border-[#E6E3DC] hover:border-[#1A1917] backdrop-blur-sm"
-            title="Compose ambient property soundtracks with Google Lyria"
-          >
-            <Music className="w-3.5 h-3.5 text-[#C25E3B]" />
-            <span className="hidden sm:inline">Soundtrack Studio</span>
-          </button>
-        )}
       </div>
 
       {/* Global Header Navigation */}
@@ -322,7 +280,6 @@ export default function App() {
           setAdvisorProperty(null);
           setIsAdvisorOpen(true);
         }}
-        onOpenMusicStudio={isSoundtrackOn ? () => setIsMusicStudioOpen(true) : undefined}
         onSelectPropertyType={(type) => {
           setFilter(prev => ({
             ...prev,
@@ -418,9 +375,6 @@ export default function App() {
             setAdvisorProperty(prop);
             setIsAdvisorOpen(true);
           }}
-          onOpenMusicForProperty={isSoundtrackOn ? (prop) => {
-            setIsMusicStudioOpen(true);
-          } : undefined}
         />
       )}
 
@@ -479,16 +433,6 @@ export default function App() {
           setSelectedProperty(prop);
         }}
       />
-
-      {/* 7. Lyria Music Studio Modal (rendered only when feature enabled) */}
-      {isSoundtrackOn && (
-        <LyriaMusicModal
-          isOpen={isMusicStudioOpen}
-          onClose={() => setIsMusicStudioOpen(false)}
-          userId={user?.uid}
-          savedSoundtracks={savedSoundtracks}
-        />
-      )}
 
     </div>
   );
